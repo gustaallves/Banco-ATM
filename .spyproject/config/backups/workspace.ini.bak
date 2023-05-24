@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['main.py']
+recent_files = ['library\\system_atm.py', '..\\Lancamento 03\\my_library\\modulo01.py', '..\\Lancamento 03\\main.py']
 
 [main]
 version = 0.2.0

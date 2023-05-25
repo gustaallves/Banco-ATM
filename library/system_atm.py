@@ -1,8 +1,9 @@
 class Entidade:
     
-    def __init__(self, nome, senha):
+    def __init__(self, nome, senha, cad_Pessoa):
         self.nome = nome
         self.senha = senha
+        self.cad_Pessoa = cad_Pessoa
 
 
 class Cliente(Entidade):
@@ -33,5 +34,5 @@ class Sistema:
     
     def __init__(self):
         pass
-#TEstando
+
 

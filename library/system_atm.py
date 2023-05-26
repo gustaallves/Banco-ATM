@@ -17,15 +17,19 @@ class Cliente(Entidade):
 
 class Gerente(Entidade):
     
-    def __init__(self, identificacao):
-        self.identificacao = identificacao
+    def __init__(self, nome, senha, identificacao):
+        super().__init__(nome, senha)
+        self.__identificacao = identificacao
 
+    def criarConta(self, nome, senha, endereco, telefone, idConta, saldo):
+        newConta = Conta(nome, senha, endereco, telefone, idConta, saldo)
+        
+        
 
-
-class Conta:
+class Conta(Cliente(Entidade)):
     
-    def __init__(self, idConta, saldo):
-        self.idConta = idConta
+    def __init__(self, nome, senha, endereco, telefone, idConta, saldo):
+        super().__init__(nome, senha, endereco, telefone, idConta)
         self.saldo = saldo
 
 

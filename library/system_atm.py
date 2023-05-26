@@ -1,3 +1,7 @@
+from library.data_base import Banco_de_Dados
+from random import choice
+import string
+
 class Entidade:
     
     def __init__(self, nome, senha):
@@ -19,9 +23,18 @@ class Gerente(Entidade):
     def __init__(self, nome, senha, identificacao):
         super().__init__(nome, senha)
         self.__identificacao = identificacao
+        
+    def generateId():
+        numbers = string.digits
+        randomNumber = "".join(choice(numbers) for _ in range(4))
+        return randomNumber
 
-    def criarConta(self, nome, senha, endereco, telefone, idConta, saldo):
+    def criarConta(self, nome, senha, endereco, telefone, saldo):
+        idConta = self.generateId()
+        
         newConta = Conta(nome, senha, endereco, telefone, idConta, saldo)
+        Banco_de_Dados().criarContaDB(newConta)
+        
         
         
 
@@ -29,7 +42,7 @@ class Conta(Cliente(Entidade)):
     
     def __init__(self, nome, senha, endereco, telefone, idConta, saldo):
         super().__init__(nome, senha, endereco, telefone, idConta)
-        self.saldo = saldo
+        self._saldo = saldo
 
 
 

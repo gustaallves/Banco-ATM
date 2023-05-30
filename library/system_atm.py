@@ -43,7 +43,10 @@ class Gerente(Entidade):
     def criarConta(self, nome, senha, cad_Pessoa, endereco, telefone, saldo):
         idConta = self.gerarID()
         novaConta = Conta(nome, senha, cad_Pessoa, endereco, telefone, idConta, saldo)
-        return self.bancoDados.criarContaDB(novaConta)
+        if self.bancoDados.criarContaDB(novaConta):
+            return novaConta
+        else:
+            return None
         
     
     def removerConta(self, nome):
@@ -73,30 +76,40 @@ class Gerente(Entidade):
         
 
 class Conta(Cliente):
-    
+
     def __init__(self, nome, senha, cad_Pessoa, endereco, telefone, idConta, saldo):
         super().__init__(nome, senha, cad_Pessoa, endereco, telefone, idConta)
         self._saldo = saldo
 
-    
-    def saque(self):
-        pass
-    
-    
-    def deposito(self):
-        pass
-    
-    
-    def pagamentoAgendado(self):
-        pass
-    
-    
+    def saque(self, valor):
+        if self._saldo >= valor:
+            self._saldo -= valor
+            return f"Saque de R${valor:.2f} realizado com sucesso. Saldo atual: R${self._saldo:.2f}"
+        else:
+            return "Saldo insuficiente para realizar o saque."
+
+    def deposito(self, valor):
+        if valor > 0:
+            self._saldo += valor
+            return f"Depósito de R${valor:.2f} realizado com sucesso. Saldo atual: R${self._saldo:.2f}"
+        else:
+            return "Valor inválido para depósito."
+
+    def pagamentoAgendado(self, valor):
+        if self._saldo >= valor:
+            self._saldo -= valor
+            return f"Pagamento agendado de R${valor:.2f} realizado com sucesso. Saldo atual: R${self._saldo:.2f}"
+        else:
+            return "Saldo insuficiente para realizar o pagamento agendado."
+
     def extrato(self):
-        pass
-    
-    
-    def solicitarCredito(self):
-        pass
+        return f"Extrato:\nNome: {self.nome}\nSaldo: R${self._saldo:.2f}"
+
+    def solicitarCredito(self, valor):
+        if valor > 0:
+            return f"Solicitação de crédito de R${valor:.2f} realizada com sucesso."
+        else:
+            return "Valor inválido para solicitar crédito."
 
 
 

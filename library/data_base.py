@@ -2,8 +2,8 @@ import json, os
 
 class Banco_de_Dados:
     
-    usersJson = "C:\\Users\\mathe\\UnB_POO\\Projeto ATM\\data base\\users.json"
-    bankHistoryJson = "C:\\Users\\mathe\\UnB_POO\\Projeto ATM\\data base\\extratos\\"
+    usersJson = "C:/Users/gugu8/Projeto_ATM/Projeto-ATM/data base/users.json"
+    bankHistoryJson = "C:/Users/gugu8/Projeto_ATM/Projeto-ATM/data base/extrato.txt"
     
     def __init__(self):
        self.usersList = []
@@ -83,7 +83,7 @@ class Banco_de_Dados:
        for i in range(len(self.usersList)):
            if self.usersList[i]["nome"] == nome:
                print("==="*13)
-               print("Nome:'", self.usersList[i]["nome"])
+               print("Nome:", self.usersList[i]["nome"])
                print("CPF/CNPJ:", self.usersList[i]["cad_Pessoa"])
                print("Endereço:", self.usersList[i]["endereco"])
                print("Telefone:", self.usersList[i]["telefone"])

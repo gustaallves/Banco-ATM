@@ -1,25 +1,22 @@
-from library.system_atm import Gerente
+from library.system_atm import Gerente, Conta
+from library.data_base import Banco_de_Dados
 
 def workspace():
-    gerente = Gerente("Gustavo", "151520", "10001", "0787")
-       
-#    if(gerente.removerConta("Ana")):
- #       print("Remoção feita com sucesso")
-  #  else:
-   #     print("Falha ao remover")
+    gerente = Gerente("Matheus", "150226", "0001", "15165156")
     
-   # print("\n")
-    conta = gerente.criarConta('Ana', 12345, 57629002106, 'Quadra', 61981297731, 1000.00)
-    print(conta.saque(500.00))
-    print(conta.deposito(200.00))
-    print(conta.extrato())
-    print(conta.solicitarCredito(1000.00))
+    contaCarlos = gerente.criarConta("CArlos", "1234", "141562185", "Lugar", "9999999", 10000)
+    contaJoao = gerente.criarConta("Joao", "senha", "cad_Pessoa", "endereco", "telefone", 1500)
+    banco = Banco_de_Dados()
     
+    banco.saqueDB(500, contaCarlos._idConta)
+    banco.depositoDB(550.50, contaCarlos._idConta)
+    banco.extratoDB(contaCarlos._idConta)
     
-   # print(gerente.visualizarConta("Ana"))
+    banco.visualizarClientesDB()
     
-            
+    banco.atualizarContaNomeDB("CArlos", "Flavio")
     
+    banco.visualizarClientesDB()
 
 if __name__ == "__main__":
     workspace()

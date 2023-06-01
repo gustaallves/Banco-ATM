@@ -5,24 +5,28 @@ import string
 class Entidade:
     
     def __init__(self, nome, senha, cad_Pessoa):
-        self.nome = nome
-        self.senha = senha
-        self.cad_Pessoa = cad_Pessoa
+        self.__nome = nome
+        self.__senha = senha
+        self.__cad_Pessoa = cad_Pessoa
+        
+        
+    def getNome(self):
+        return self.__nome
 
 
 class Cliente(Entidade):
     
     def __init__(self, nome, senha, cad_Pessoa, endereco, telefone, idConta):
         super().__init__(nome, senha, cad_Pessoa)
-        self.endereco = endereco
-        self.telefone = telefone
-        self.idConta = idConta
-        
+        self.__endereco = endereco
+        self.__telefone = telefone
+        self._idConta = idConta
+         
 
 
 class Gerente(Entidade):
     
-    bancoDados = Banco_de_Dados()
+    __bancoDados = Banco_de_Dados()
     
     def __init__(self, nome, senha, identificacao, cad_Pessoa):
         super().__init__(nome, senha, cad_Pessoa)
@@ -43,34 +47,34 @@ class Gerente(Entidade):
     def criarConta(self, nome, senha, cad_Pessoa, endereco, telefone, saldo):
         idConta = self.gerarID()
         novaConta = Conta(nome, senha, cad_Pessoa, endereco, telefone, idConta, saldo)
-        if self.bancoDados.criarContaDB(novaConta):
+        if self.__bancoDados.criarContaDB(novaConta):
             return novaConta
         else:
             return None
         
     
     def removerConta(self, nome):
-        return self.bancoDados.excluirContaDB(nome)
+        return self.__bancoDados.excluirContaDB(nome)
     
     
     def atualizarContaNome(self, nomeAntigo, nomeNovo):
-        return self.bancoDados.atualizarContaNomeDB(nomeAntigo, nomeNovo)
+        return self.__bancoDados.atualizarContaNomeDB(nomeAntigo, nomeNovo)
     
     
     def atualizarContaEndereco(self, nome, enderecoNovo):
-        return self.bancoDados.atualizarContaEnderecoDB(nome, enderecoNovo)
+        return self.__bancoDados.atualizarContaEnderecoDB(nome, enderecoNovo)
     
     
     def atulizarContaTelefone(self, nome, telefoneNovo):
-        return self.bancoDados.atualizarContaTelefoneDB(nome, telefoneNovo)
+        return self.__bancoDados.atualizarContaTelefoneDB(nome, telefoneNovo)
     
     
     def vizualizarCliente(self):
-        return self.bancoDados.visualizarClientesDB()
+        return self.__bancoDados.visualizarClientesDB()
     
     
     def visualizarConta(self, nome):
-        return self.bancoDados.visualizarContaDB(nome)
+        return self.__bancoDados.visualizarContaDB(nome)
     
     
         
@@ -81,19 +85,14 @@ class Conta(Cliente):
         super().__init__(nome, senha, cad_Pessoa, endereco, telefone, idConta)
         self._saldo = saldo
 
-    def saque(self, valor):
-        if self._saldo >= valor:
-            self._saldo -= valor
-            return f"Saque de R${valor:.2f} realizado com sucesso. Saldo atual: R${self._saldo:.2f}"
-        else:
-            return "Saldo insuficiente para realizar o saque."
 
-    def deposito(self, valor):
-        if valor > 0:
-            self._saldo += valor
-            return f"Depósito de R${valor:.2f} realizado com sucesso. Saldo atual: R${self._saldo:.2f}"
-        else:
-            return "Valor inválido para depósito."
+    def saque(self, valor, conta):
+        return self.__bancoDados.saqueDB(valor, conta)
+
+
+    def deposito(self, valor, conta):
+        return self.__bancoDados.depositoDB(valor, conta)
+
 
     def pagamentoAgendado(self, valor):
         if self._saldo >= valor:
@@ -102,8 +101,10 @@ class Conta(Cliente):
         else:
             return "Saldo insuficiente para realizar o pagamento agendado."
 
-    def extrato(self):
-        return f"Extrato:\nNome: {self.nome}\nSaldo: R${self._saldo:.2f}"
+
+    def extrato(self, conta):
+        return self.__bancoDados.extratoDB(conta)
+
 
     def solicitarCredito(self, valor):
         if valor > 0:

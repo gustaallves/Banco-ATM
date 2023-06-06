@@ -47,6 +47,7 @@ class Gerente(Entidade):
     def criarConta(self, nome, senha, cad_Pessoa, endereco, telefone, saldo):
         idConta = self.gerarID()
         novaConta = Conta(nome, senha, cad_Pessoa, endereco, telefone, idConta, saldo)
+        
         if self.__bancoDados.criarContaDB(novaConta):
             return novaConta
         else:
@@ -65,7 +66,7 @@ class Gerente(Entidade):
         return self.__bancoDados.atualizarContaEnderecoDB(idConta, enderecoNovo)
     
     
-    def atulizarContaTelefone(self, idConta, telefoneNovo):
+    def atualizarContaTelefone(self, idConta, telefoneNovo):
         return self.__bancoDados.atualizarContaTelefoneDB(idConta, telefoneNovo)
     
     
@@ -116,6 +117,7 @@ class Sistema:
     def __init__(self, banco_dados, gerente):
         self.banco_dados = banco_dados
         self.gerente = gerente
+        
         print("====================Banco ATM====================\n")
         print("Digite a opção que deseja acessar:\n")
         print("[1] Gerente\n")
@@ -140,76 +142,90 @@ class Sistema:
         print("=================================================\n")
 
         opcao = input("Digite o número da opção desejada: ")
+        
         if opcao == "1":
             self.criar_conta()
+            
         elif opcao == "2":
             idConta = input("Digite o ID da conta a ser removida: ")
-            if self.removerConta(idConta):
+            if self.gerente.removerConta(idConta):
                 print("Conta removida com sucesso!")
             else:
                 print("Não foi possível remover a conta.")
+                
+                
         elif opcao == "3":
             idConta = input("Digite o ID da conta a ser atualizada: ")
-            print("Selecione uma opção:\n")
-            print("[1] Atualizar nome\n")
-            print("[2] Atualizar endereço\n")
-            print("[3] Atualizar telefone\n")
-            sub_opcao = input("Digite o número da opção desejada: ")
-
-            if sub_opcao == "1":
-                novo_nome = input("Digite o novo nome: ")
-                if self.atualizarContaNome(idConta, novo_nome):
-                    print("Nome da conta atualizado com sucesso!")
+            if self.banco_dados.verificarIdConta(idConta):
+                print("Selecione uma opção:\n")
+                print("[1] Atualizar nome\n")
+                print("[2] Atualizar endereço\n")
+                print("[3] Atualizar telefone\n")
+                
+                sub_opcao = input("Digite o número da opção desejada: ")
+    
+                if sub_opcao == "1":
+                    novo_nome = input("Digite o novo nome: ")
+                    if self.gerente.atualizarContaNome(idConta, novo_nome):
+                        print("Nome atualizado com Sucesso.")
+                    else:
+                        print("Não foi possivel atualizar o nome da conta.")
+                        
+                elif sub_opcao == "2":
+                    novo_endereco = input("Digite o novo endereço: ")
+                    if self.gerente.atualizarContaEndereco(idConta, novo_endereco):
+                        print("Endereço da conta atualizado com sucesso!")
+                    else:
+                        print("Não foi possível atualizar o endereço da conta.")
+                        
+                        
+                elif sub_opcao == "3":
+                    novo_telefone = input("Digite o novo telefone: ")
+                    if self.gerente.atualizarContaTelefone(idConta, novo_telefone):
+                        print("Telefone da conta atualizado com sucesso!") 
+                    else:
+                        print("Não foi possível atualizar o telefone da conta.")
+                        
                 else:
-                    print("Não foi possível atualizar o nome da conta.")
-            elif sub_opcao == "2":
-                novo_endereco = input("Digite o novo endereço: ")
-                if self.atualizarContaEndereco(idConta, novo_endereco):
-                    print("Endereço da conta atualizado com sucesso!")
-                else:
-                    print("Não foi possível atualizar o endereço da conta.")
-            elif sub_opcao == "3":
-                novo_telefone = input("Digite o novo telefone: ")
-                if self.atualizarContaTelefone(idConta, novo_telefone):
-                    print("Telefone da conta atualizado com sucesso!")
-                else:
-                    print("Não foi possível atualizar o telefone da conta.")
+                    print("Opção inválida.")
+            
             else:
-                print("Opção inválida.")
+                print("Conta Inválida.")
+                
         elif opcao == "4":
             idConta = input("Digite o ID da conta a ser visualizada: ")
-            conta = self.visualizarConta(idConta)
-            if conta:
-                print("Detalhes da Conta:")
-                print("Nome:", conta.getNome())
-                # Exibir outros detalhes da conta, se necessário
-            else:
-                print("Conta não encontrada.")
+            self.gerente.visualizarConta(idConta)
+            
         else:
             print("Digite um valor válido.\n")
 
     def criar_conta(self):
         print("====================Banco ATM====================\n")
         print("Digite os dados do cliente:\n")
+        
         nome = input("Nome: ")
         cad_Pessoa = input("CPF/CNPJ: ")
         endereco = input("Endereço: ")
         telefone = input("Telefone: ")
-        saldo = input("Saldo Inicial: ")
+        saldo = float(input("Saldo Inicial: "))
         senha = input("Senha: ")
 
-        conta = self.criarConta(nome, senha, cad_Pessoa, endereco, telefone, saldo)
+        conta = self.gerente.criarConta(nome, senha, cad_Pessoa, endereco, telefone, saldo)
         if conta:
             print("Conta criada com sucesso!")
             print("ID da conta:", conta._idConta)
+            
         else:
             print("Não foi possível criar a conta.")
 
     def interface_Cliente(self):
         idConta = input("Digite o ID da conta: ")
         senha = input("Digite a senha: ")
-        conta = self.visualizarConta(idConta)
-        if conta and conta._senha == senha:
+        
+        if self.banco_dados.verificarSenhaDB(idConta, senha):
+            info = self.banco_dados.getConta(idConta)
+            conta = Conta(info[0], info[1], info[2], info[3], info[4], info[5], info[6])
+            
             print("====================Banco ATM====================\n")
             print("Selecione uma opção:\n")
             print("[1] Saque\n")
@@ -219,30 +235,32 @@ class Sistema:
             print("=================================================\n")
 
             opcao = input("Digite o número da opção desejada: ")
+            
             if opcao == "1":
-                valor = input("Digite o valor do saque: ")
+                valor = float(input("Digite o valor do saque: "))
                 if conta.saque(valor, idConta):
                     print("Saque realizado com sucesso!")
                 else:
                     print("Não foi possível realizar o saque.")
+                    
             elif opcao == "2":
-                valor = input("Digite o valor do depósito: ")
+                valor = float(input("Digite o valor do depósito: "))
                 if conta.deposito(valor, idConta):
                     print("Depósito realizado com sucesso!")
                 else:
                     print("Não foi possível realizar o depósito.")
+                    
             elif opcao == "3":
-                valor = input("Digite o valor do pagamento: ")
+                valor = float(input("Digite o valor do pagamento: "))
                 data = input("Digite a data do pagamento (dd/mm/aaaa): ")
                 if conta.pagamentoAgendado(valor, data, idConta):
                     print("Pagamento agendado com sucesso!")
                 else:
                     print("Não foi possível agendar o pagamento.")
+                    
             elif opcao == "4":
-                extrato = conta.extrato(idConta)
-                print("Extrato:")
-                for item in extrato:
-                    print(item)
+                conta.extrato(idConta)
+                
             else:
                 print("Digite um valor válido.\n")
         else:

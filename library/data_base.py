@@ -1,15 +1,23 @@
 import os
 import json
+import platform
 import datetime as dt
 from pathlib import Path
 
 class Banco_de_Dados:
     
     diretorio_atual = os.getcwd()
-
-    caminho_featuresJson = str(diretorio_atual + "\\data base\\features.json")
-    caminho_extratos = str(diretorio_atual + "\\data base\\extratos")
-    caminho_Json = str(diretorio_atual + "\\data base\\users.json")
+    so = platform.system()
+    
+    if so == "Windows":
+        caminho_featuresJson = str(diretorio_atual + "\\data base\\features.json")
+        caminho_extratos = str(diretorio_atual + "\\data base\\extratos")
+        caminho_Json = str(diretorio_atual + "\\data base\\users.json")
+    
+    else:
+        caminho_featuresJson = str(diretorio_atual + "//data base//features.json")
+        caminho_extratos = str(diretorio_atual + "//data base//extratos")
+        caminho_Json = str(diretorio_atual + "//data base//users.json")
     
     __usersJson = caminho_Json
     __bankHistory = caminho_extratos
@@ -82,27 +90,24 @@ class Banco_de_Dados:
     
     
     def excluirContaDB(self, idConta):
+        encontrado = False
         for i in reversed(range(len(self.__usersList))):
             if (not self.__usersList):
                 print("Não possui clientes disponíveis.")
-                return False
             
             elif self.__usersList[i]["_idConta"] == idConta:
-                try:
                     nomeArq = idConta + ".txt"
                     arqExtrato = Path(self.__bankHistory, nomeArq)
                     os.remove(arqExtrato)
                     self.__usersList.pop(i)
-                    
-                except IndexError:
-                    return False
+                    encontrado = True
             
-        else:
+        if not encontrado:
             print("Usuário não encontrado.")
             return False
         
         self.atualizarJson(self.__usersJson, self.__usersList)
-        return True
+        return encontrado
             
     
     def visualizarClientesDB(self):

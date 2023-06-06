@@ -5,11 +5,11 @@ from pathlib import Path
 
 class Banco_de_Dados:
     
-    diretorio_atual = os.path.dirname(os.path.abspath(__file__))
+    diretorio_atual = os.getcwd()
 
-    caminho_featuresJson = os.path.join(diretorio_atual, "Projeto ATM", "data base", "features.json")
-    caminho_extratos = os.path.join(diretorio_atual, "Projeto ATM", "data base", "extratos")
-    caminho_Json = os.path.join(diretorio_atual, "Projeto ATM", "data base", "users.json")
+    caminho_featuresJson = str(diretorio_atual + "\\data base\\features.json")
+    caminho_extratos = str(diretorio_atual + "\\data base\\extratos")
+    caminho_Json = str(diretorio_atual + "\\data base\\users.json")
     
     __usersJson = caminho_Json
     __bankHistory = caminho_extratos
@@ -35,27 +35,29 @@ class Banco_de_Dados:
             self.__usersList = json.load(fp)
     
     def atualizarJson(self, diretorio, arquivo):
-        try:
-            with open(diretorio, "w") as fp:
-                json.dump(arquivo, fp, indent=4)
-                return True
+        with open(diretorio, "w") as fp:
+            json.dump(arquivo, fp, indent=4)
+            return True
             
-        except Exception:
-            return False 
         
     def atualizarAtributoJson(self, idConta, campoJson, atributoNovo):
         with open(self.__usersJson, "r") as usersFile:
             self.__usersList = json.load(usersFile)
 
+        encontrado = False  # Variável de controle
+    
         for user in self.__usersList:
             if user["_idConta"] == idConta:
                 user[campoJson] = atributoNovo
+                encontrado = True
                 break
-        else:
+    
+        if not encontrado:
             print("Usuário não encontrado.")
             return False
-        
+    
         self.atualizarJson(self.__usersJson, self.__usersList)
+        
         
     
     def criarContaDB(self, conta):
@@ -75,18 +77,32 @@ class Banco_de_Dados:
         self.__usersList.append(converterUsers)
         self.__usersList.sort(key=lambda x: x.get("_Entidade__nome"))
         
-        return self.atualizarJson(self.__usersJson, self.__usersList)
+        self.atualizarJson(self.__usersJson, self.__usersList)
+        return True
     
     
     def excluirContaDB(self, idConta):
-        for i in range(len(self.__usersList)):
-            if self.__usersList[i]["_idConta"] == idConta:
+        for i in reversed(range(len(self.__usersList))):
+            if (not self.__usersList):
+                print("Não possui clientes disponíveis.")
+                return False
+            
+            elif self.__usersList[i]["_idConta"] == idConta:
                 try:
+                    nomeArq = idConta + ".txt"
+                    arqExtrato = Path(self.__bankHistory, nomeArq)
+                    os.remove(arqExtrato)
                     self.__usersList.pop(i)
+                    
                 except IndexError:
                     return False
-                
-                return self.atualizarJson(self.__usersJson, self.__usersList)
+            
+        else:
+            print("Usuário não encontrado.")
+            return False
+        
+        self.atualizarJson(self.__usersJson, self.__usersList)
+        return True
             
     
     def visualizarClientesDB(self):
@@ -100,6 +116,7 @@ class Banco_de_Dados:
             for i in range(len(self.__usersList)):
                 print("-",self.__usersList[i]["_Entidade__nome"]) 
             print("==="*13)
+            return True
         
             
     def atualizarContaNomeDB(self, idConta, nomeNovo):
@@ -113,6 +130,7 @@ class Banco_de_Dados:
     def atualizarContaTelefoneDB(self, idConta, telefoneNovo):
         return self.atualizarAtributoJson(idConta, "_Cliente__telefone", telefoneNovo)
     
+    
     def atualizarContaSaldoDB(self, idConta, valor):
         with open(self.__usersJson, "r") as usersFile:
             self.__usersList = json.load(usersFile)
@@ -125,7 +143,8 @@ class Banco_de_Dados:
             print("Usuário não encontrado.")
             return False
     
-        return self.atualizarJson(self.__usersJson, self.__usersList)
+        self.atualizarJson(self.__usersJson, self.__usersList)
+        return True
                        
     
     def visualizarContaDB(self, idConta):
@@ -137,7 +156,7 @@ class Banco_de_Dados:
                print("Endereço:", self.__usersList[i]["_Cliente__endereco"])
                print("Telefone:", self.__usersList[i]["_Cliente__telefone"])
                print("Conta:", self.__usersList[i]["_idConta"])
-               print("Saldo:", self.__usersList[i]["_saldo"])
+               print("Saldo:", round(self.__usersList[i]["_saldo"], 2))
                print("==="*13)
                return True
            
@@ -154,6 +173,7 @@ class Banco_de_Dados:
         hora = dt.datetime.now()
         return hora.strftime("%H:%M:%S")
    
+    
     def saqueDB(self, valorSaque, idConta):
         dataAtualF = self.dataAtualDB()
         horaAtual = self.horaAtualDB()
@@ -165,19 +185,23 @@ class Banco_de_Dados:
                     try:
                         arqExtrato = open(Path(self.__bankHistory, (idConta + ".txt")), "a")
                         self.atualizarContaSaldoDB(idConta, -float((abs(valorSaque))))
-                        saldoAtual = user["_saldo"]
                         
                     except FileNotFoundError:
                         return False
+                    
                 else:
-                    print("impossivel sacar.\n")
+                    print("Saldo insuficiente.\n")
                     return False
+                
+        for user in self.__usersList:
+            if user["_idConta"] == idConta:
+                saldoAtual = round(user["_saldo"], 2) 
         
         arqExtrato.write("==="*15 + "\n")
         arqExtrato.write(f"Data: {dataAtualF}   -   {horaAtual}\n")
         arqExtrato.write(f"- {valorSaque}\n")
         arqExtrato.write("==="*15 + "\n")
-        arqExtrato.write(f"Saldo Atual: R$ {saldoAtual:.2}\n")
+        arqExtrato.write(f"Saldo Atual: R$ {saldoAtual:.2f}\n")
         
         arqExtrato.close()
         return True
@@ -186,6 +210,7 @@ class Banco_de_Dados:
     def depositoDB(self, valorDeposito, idConta):
         dataAtualF = self.dataAtualDB()
         horaAtual = self.horaAtualDB()
+        saldoAtual = 0.0
         
         try:
             arqExtrato = open(Path(self.__bankHistory, (idConta + ".txt")), "a")
@@ -194,13 +219,19 @@ class Banco_de_Dados:
         except FileNotFoundError:
             return False
         
+        for user in self.__usersList:
+            if user["_idConta"] == idConta:
+                saldoAtual = round(user["_saldo"], 2) 
+        
         arqExtrato.write("==="*15 + "\n")
         arqExtrato.write(f"Data: {dataAtualF}   -   {horaAtual}\n")
         arqExtrato.write(f"+ {valorDeposito}\n")
         arqExtrato.write("==="*15 + "\n")
+        arqExtrato.write(f"Saldo Atual: R$ {saldoAtual:.2f}\n")
         
         arqExtrato.close()
         return True
+    
     
     # A DATA DEVE SER DIGITADA ASSIM: (dd/mm/aaaa)
     def pagamentoAgendadoDB(self, valor, data, idConta):
@@ -266,14 +297,17 @@ class Banco_de_Dados:
     def verificarDepositoAgendadoDB(self, idConta):
         dataAtualF = self.dataAtualDB()
         
-        for user in self.__featuresLists:
-            if user["_idConta"] == idConta:
-                if user["dataPagamento"] == dataAtualF:
-                    valor = user["valorPagamento"]
-                    self.depositoDB(valor, idConta)
-                    return True
-                
-        return False 
+        if (not self.__featuresLists):
+            print("Não há clientes cadastrados.")
+            return False
+        
+        else:
+            for user in self.__featuresLists:
+                if user["_idConta"] == idConta:
+                    if user["dataPagamento"] == dataAtualF:
+                        valor = user["valorPagamento"]
+                        self.depositoDB(valor, idConta)
+                        return True
     
     
     def solicitarCreditoDB(self, valor, data, idConta):
@@ -286,3 +320,39 @@ class Banco_de_Dados:
                 else:                                        #CNPJ
                     if valor <= (user["_saldo"]*0.5):
                         self.depositoAgendadoDB(valor, data, idConta)
+        return True
+                 
+                        
+    def verificarSenhaDB(self, idConta, senha):
+        for user in self.__usersList:
+            if user["_idConta"] == idConta:
+                if user["_Entidade__senha"] == senha:
+                    return True
+                else:
+                    return False
+                
+                
+    def getConta(self, idConta):
+        informacoes = []
+        for user in self.__usersList:
+            if user["_idConta"] == idConta:
+                informacoes.append(user["_Entidade__nome"])
+                informacoes.append(user["_Entidade__senha"])
+                informacoes.append(user["_Entidade__cad_Pessoa"])
+                informacoes.append(user["_Cliente__endereco"])
+                informacoes.append(user["_Cliente__telefone"])
+                informacoes.append(user["_idConta"])
+                informacoes.append(user["_saldo"])
+                
+        return informacoes
+    
+    
+    def verificarIdConta(self, idConta):
+        for user in self.__usersList:
+            if user["_idConta"] == idConta:
+                return True
+                break
+            
+        else:
+            return False
+        

@@ -6,7 +6,7 @@ from library.system_atm import Sistema
 def workspace():
     
     banco_dados = Banco_de_Dados()
-    gerente = Gerente("Gustavo", "123456", "789456", "87629002106")
+    gerente = Gerente("Gustavo", "123456", "789456", "07629002106")
 
     sistema = Sistema(banco_dados, gerente)
     

@@ -23,6 +23,10 @@ class Banco_de_Dados:
     __bankHistory = caminho_extratos
     __bankFeatures = caminho_featuresJson
     
+    print("Caminho features.json:", caminho_featuresJson)
+    print("Caminho extratos:", caminho_extratos)
+    print("Caminho users.json:", caminho_Json)
+    
     def __init__(self):
         try:
             with open(self.__usersJson) as fp:
@@ -328,13 +332,14 @@ class Banco_de_Dados:
         return True
                  
                         
-    def verificarSenhaDB(self, idConta, senha):
+    def verificarSenhaClienteDB(self, idConta, senha):
         for user in self.__usersList:
             if user["_idConta"] == idConta:
                 if user["_Entidade__senha"] == senha:
                     return True
                 else:
                     return False
+                
                 
                 
     def getConta(self, idConta):

@@ -9,6 +9,7 @@ def workspace():
     gerente = Gerente("Gustavo", "123456", "789456", "07629002106")
 
     sistema = Sistema(banco_dados, gerente)
+    sistema.interface_Principal()
     
 
 if __name__ == "__main__":

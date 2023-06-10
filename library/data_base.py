@@ -23,9 +23,6 @@ class Banco_de_Dados:
     __bankHistory = caminho_extratos
     __bankFeatures = caminho_featuresJson
     
-    print("Caminho features.json:", caminho_featuresJson)
-    print("Caminho extratos:", caminho_extratos)
-    print("Caminho users.json:", caminho_Json)
     
     def __init__(self):
         try:
@@ -69,6 +66,7 @@ class Banco_de_Dados:
             return False
     
         self.atualizarJson(self.__usersJson, self.__usersList)
+        return True
         
         
     
@@ -165,7 +163,7 @@ class Banco_de_Dados:
                print("Endereço:", self.__usersList[i]["_Cliente__endereco"])
                print("Telefone:", self.__usersList[i]["_Cliente__telefone"])
                print("Conta:", self.__usersList[i]["_idConta"])
-               print("Saldo:", round(self.__usersList[i]["_saldo"], 2))
+               print("Saldo: R$", round(self.__usersList[i]["_saldo"], 2))
                print("==="*13)
                return True
            
@@ -210,7 +208,7 @@ class Banco_de_Dados:
         arqExtrato.write(f"Data: {dataAtualF}   -   {horaAtual}\n")
         arqExtrato.write(f"- {valorSaque}\n")
         arqExtrato.write("==="*15 + "\n")
-        arqExtrato.write(f"Saldo Atual: R$ {saldoAtual:.2f}\n")
+        arqExtrato.write(f"Saldo: R$ {saldoAtual:.2f}\n")
         
         arqExtrato.close()
         return True
@@ -236,7 +234,7 @@ class Banco_de_Dados:
         arqExtrato.write(f"Data: {dataAtualF}   -   {horaAtual}\n")
         arqExtrato.write(f"+ {valorDeposito}\n")
         arqExtrato.write("==="*15 + "\n")
-        arqExtrato.write(f"Saldo Atual: R$ {saldoAtual:.2f}\n")
+        arqExtrato.write(f"Saldo: R$ {saldoAtual:.2f}\n")
         
         arqExtrato.close()
         return True
@@ -279,6 +277,7 @@ class Banco_de_Dados:
         try:
             arqExtrato = open(Path(self.__bankHistory, (idConta + ".txt")), "r")
             extrato = arqExtrato.read()
+            
             print(extrato)
             
         except FileNotFoundError:
@@ -322,23 +321,26 @@ class Banco_de_Dados:
     def solicitarCreditoDB(self, valor, data, idConta):
         for user in self.__usersList:
             if user["_idConta"] == idConta:
-                if len(user["_Entidade__cad_Pessoa"] == 11): #CPF
-                    if valor <= (user["_saldo"]*0.25):
+                if len(user["_Entidade__cad_Pessoa"]) == 11:  # CPF
+                    if valor <= (user["_saldo"] * 0.25):
                         self.depositoAgendadoDB(valor, data, idConta)
-                
-                else:                                        #CNPJ
-                    if valor <= (user["_saldo"]*0.5):
+                    else:
+                        return False
+                else:  # CNPJ
+                    if valor <= (user["_saldo"] * 0.5):
                         self.depositoAgendadoDB(valor, data, idConta)
+                    else:
+                        return False
         return True
+
                  
-                        
     def verificarSenhaClienteDB(self, idConta, senha):
         for user in self.__usersList:
             if user["_idConta"] == idConta:
                 if user["_Entidade__senha"] == senha:
                     return True
-                else:
-                    return False
+        return False
+
                 
                 
                 
@@ -365,4 +367,6 @@ class Banco_de_Dados:
             
         else:
             return False
+        
+    
         

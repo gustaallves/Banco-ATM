@@ -1,6 +1,6 @@
 from library.data_base import Banco_de_Dados
 from random import choice
-import string
+import string, sys
 
 class Entidade:
     
@@ -33,6 +33,8 @@ class Gerente(Entidade):
         super().__init__(nome, senha, cad_Pessoa)
         self.__identificacao = identificacao
         
+    def verificarIdentificacao(self, identificacao):
+        return self.__identificacao == identificacao
     
     def gerarID(self):
         idLista = []
@@ -128,40 +130,56 @@ class Sistema:
         input()
         
     def interface_Principal(self):
-        
         while True:
-            self.limparTela()
+            #self.limparTela()
             
             print("====================Banco ATM====================\n")
-            print("Digite a opção que deseja acessar:\n")
-            print("[1] Gerente\n")
-            print("[2] Conta\n")
-            print("[3] Sair\n")
+            print("Bem-Vindo ao Banco ATM!\n")
+            print("[1] Sair\n")
+            print("[2] Login\n")
+            opcao = input("Digite uma opção: ")
             print("=================================================\n")
             
-        
-            opcao = input("Digite o número da opção desejada: ")
-        
             if opcao == "1":
-                self.interface_Gerente()
-            elif opcao == "2":
-                self.interface_Cliente()
-            elif opcao == "3":
                 print("Saindo do sistema...")
-                break  # Sai do loop e encerra o programa
+                sys.exit()
+            elif opcao == "2":
+                print("====================Banco ATM====================\n")
+                print("Login\n")
+                idConta = input("Digite o ID do usuário: ")
+                senha = input("Digite a Senha: ")
+                print("=================================================\n")
+                
+                identificacao = idConta
+                
+                if self.banco_dados.verificarSenhaClienteDB(idConta, senha):
+                    # Login do cliente bem-sucedido
+                    self.interface_Cliente(idConta, senha)
+                    break
+                    
+                elif self.verificarIdentificacaoGerente(identificacao):
+                    # Verificação da identificação do gerente
+                    self.interface_Gerente()
+                    break
+                    
+                else:
+                    # Login falhou
+                    print("Falha no login. Verifique o ID e a senha.\n")
+                    input("Pressione Enter para continuar...")
+                    
             else:
-                print("Digite um valor válido.\n")
-                
-            self.limparTela()
-                
+                print("Digite uma opção válida!")
 
 
+
+                
+
+    def verificarIdentificacaoGerente(self, identificacao):
+        return self.gerente.verificarIdentificacao(identificacao)
 
     def interface_Gerente(self):
-        self.limparTela()
-        senha = input("Digite a senha do Gerente: ")
-        if senha == self.gerente._Entidade__senha:
-            while True:
+
+        while True:
                 self.limparTela()
                 print("====================Banco ATM====================\n")
                 print("Selecione uma opção:\n")
@@ -230,16 +248,16 @@ class Sistema:
     
                 elif opcao == "5":
                     print("Voltando a Tela Inicial")
-                    break  # Sai do loop e encerra o programa
+                    self.interface_Principal()  # Sai do loop e encerra o programa
     
                 else:
                     print("Digite um valor válido.\n")
-                self.pauseTela()
+                #self.pauseTela()
     
         else:
             print("Senha inválida.\n")
     
-        self.limparTela()
+        self.limparTela()    
     
             
     
@@ -273,9 +291,7 @@ class Sistema:
 
 
     
-    def interface_Cliente(self):
-        idConta = input("Digite o ID da conta: ")
-        senha = input("Digite a senha: ")
+    def interface_Cliente(self, idConta, senha):
     
         if self.banco_dados.verificarSenhaClienteDB(idConta, senha):
             info = self.banco_dados.getConta(idConta)
@@ -330,6 +346,7 @@ class Sistema:
     
                 elif opcao == "6":
                     print("Saindo do sistema...")
+                    self.interface_Principal()
                     break  # Sai do loop e encerra o programa
     
                 else:
@@ -340,7 +357,7 @@ class Sistema:
         else:
             print("Credenciais inválidas.")
             
-        self.pauseTela()   
+        #self.pauseTela()   
         self.limparTela()
 
 

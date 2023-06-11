@@ -223,7 +223,7 @@ class Banco_de_Dados:
         
         try:
             arqExtrato = open(Path(self.__bankHistory, (idConta + ".txt")), "a")
-            self.atualizarContaSaldoDB(idConta, abs(valorDeposito))
+            self.atualizarContaSaldoDB(idConta, +float(abs(valorDeposito)))
             
         except FileNotFoundError:
             return False
@@ -240,6 +240,31 @@ class Banco_de_Dados:
         
         arqExtrato.close()
         return True
+    
+    
+    def excluirFeatures(self, idConta, tipoFeature):
+        encontrado = False
+        for i in reversed(range(len(self.__featuresLists))):
+            if (not self.__featuresLists):
+                print("Não possui clientes disponíveis.")
+            
+            elif self.__featuresLists[i]["_idConta"] == idConta and tipoFeature == "valorDeposito":
+                if "valorDeposito" in self.__featuresLists[i]:
+                    self.__featuresLists.pop(i)
+                    encontrado = True
+                    break
+            
+            elif self.__featuresLists[i]["_idConta"] == idConta and tipoFeature == "valorPagamento":
+                if "valorPagamento" in self.__featuresLists[i]:
+                    self.__featuresLists.pop(i)
+                    encontrado = True
+                    break
+            
+        if not encontrado:
+            return False
+        
+        self.atualizarJson(self.__bankFeatures, self.__featuresLists)
+        return encontrado
     
     
     # A DATA DEVE SER DIGITADA ASSIM: (dd/mm/aaaa)
@@ -263,15 +288,22 @@ class Banco_de_Dados:
     
     def verificarPagamentoAgendadoDB(self, idConta):
         dataAtualF = self.dataAtualDB()
-        
-        for user in self.__featuresLists:
-            if user["_idConta"] == idConta:
-                if user["dataPagamento"] == dataAtualF:
-                    valor = user["valorPagamento"]
-                    self.saqueDB(valor, idConta)
-                    return True
-                
-        return False
+        encontrado = False
+    
+        if not self.__featuresLists:
+            print("Não há clientes cadastrados.")
+            return False
+    
+        else:
+            for user in reversed(self.__featuresLists):
+                if user["_idConta"] == idConta:
+                    if "dataPagamento" in user and user["dataPagamento"] == dataAtualF:
+                        valor = user["valorPagamento"]
+                        self.saqueDB(valor, idConta)
+                        self.excluirFeatures(idConta, "valorPagamento")
+                        encontrado = True
+    
+        return encontrado
     
     
     def extratoDB(self, idConta):
@@ -291,7 +323,7 @@ class Banco_de_Dados:
 
         data_formatada = data_obj.strftime("%d/%m/%Y")
         
-        deposito = {"_idConta": idConta,"valorPagamento": valor ,"dataPagamento": data_formatada}
+        deposito = {"_idConta": idConta,"valorDeposito": valor ,"dataDeposito": data_formatada}
         self.__featuresLists.append(deposito)
         self.__featuresLists.sort(key=lambda x: x.get("_idConta"))
         
@@ -306,19 +338,22 @@ class Banco_de_Dados:
         
     def verificarDepositoAgendadoDB(self, idConta):
         dataAtualF = self.dataAtualDB()
-        
-        if (not self.__featuresLists):
+        encontrado = False
+    
+        if not self.__featuresLists:
             print("Não há clientes cadastrados.")
             return False
-        
-        else:
-            for user in self.__featuresLists:
-                if user["_idConta"] == idConta:
-                    if user["dataPagamento"] == dataAtualF:
-                        valor = user["valorPagamento"]
-                        self.depositoDB(valor, idConta)
-                        return True
     
+        else:
+            for user in reversed(self.__featuresLists):
+                if user["_idConta"] == idConta:
+                    if "dataDeposito" in user and user["dataDeposito"] == dataAtualF:
+                        valor = user["valorDeposito"]
+                        self.depositoDB(valor, idConta)
+                        self.excluirFeatures(idConta, "valorDeposito")
+                        encontrado = True
+    
+        return encontrado
     
     def solicitarCreditoDB(self, valor, data, idConta):
         for user in self.__usersList:
@@ -347,7 +382,16 @@ class Banco_de_Dados:
                     return True
         return False
 
+    
+    def getSaldoDB(self, idConta):
+        saldo = 0.0
+        
+        for user in self.__usersList:
+            if user["_idConta"] == idConta:
+                saldo = user["_saldo"]
                 
+        return saldo
+        
                 
                 
     def getConta(self, idConta):

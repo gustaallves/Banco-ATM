@@ -1,7 +1,7 @@
 from library.data_base import Banco_de_Dados
 from random import choice
 import string, sys
-import os, platform
+import platform
 
 class Entidade:
     
@@ -96,6 +96,7 @@ class Conta(Cliente):
         super().__init__(nome, senha, cad_Pessoa, endereco, telefone, idConta)
         self._saldo = saldo
         self.__bancoDados.verificarPagamentoAgendadoDB(idConta)
+        self.__bancoDados.verificarDepositoAgendadoDB(idConta)
         
 
     def saque(self, valor, idConta):
@@ -367,6 +368,9 @@ class Sistema:
     
                 if opcao == "1":
                     self.limparTela()
+                    saldo = self.banco_dados.getSaldoDB(idConta)
+                    
+                    print(f"Seu saldo atual é: R$ {saldo}")
                     valor = float(input("Digite o valor do saque: "))
                     
                     if conta.saque(valor, idConta):
@@ -381,6 +385,9 @@ class Sistema:
     
                 elif opcao == "2":
                     self.limparTela()
+                    saldo = self.banco_dados.getSaldoDB(idConta)
+                    
+                    print(f"Seu saldo atual é: R$ {saldo}")
                     valor = float(input("Digite o valor do depósito: "))
                     
                     if conta.deposito(valor, idConta):
@@ -395,6 +402,9 @@ class Sistema:
     
                 elif opcao == "3":
                     self.limparTela()
+                    saldo = self.banco_dados.getSaldoDB(idConta)
+                    
+                    print(f"Seu saldo atual é: R$ {saldo}")
                     valor = float(input("Digite o valor do pagamento: "))
                     data = input("Digite a data do pagamento (dd/mm/aaaa): ")
                     
@@ -410,6 +420,14 @@ class Sistema:
     
                 elif opcao == "4":
                     self.limparTela()
+                    print("ATENÇÃO")
+                    print("Total disponivel para solicitar crédito: ")
+                    print("Pessoa Física: 25% do seu saldo atual.")
+                    print("Pessoa Juridica: 50% do seu saldo atual.\n")
+                    
+                    saldo = self.banco_dados.getSaldoDB(idConta)
+                    
+                    print(f"Seu saldo atual é: R$ {saldo}")
                     valor_credito = float(input("Digite o valor do crédito: "))
                     data_credito = input("Digite a data do crédito (dd/mm/aaaa): ")
                     

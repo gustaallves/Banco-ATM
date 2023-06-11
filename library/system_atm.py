@@ -1,6 +1,6 @@
 from library.data_base import Banco_de_Dados
 from random import choice
-import string
+import string, sys
 
 class Entidade:
     
@@ -21,6 +21,7 @@ class Cliente(Entidade):
         self.__endereco = endereco
         self.__telefone = telefone
         self._idConta = idConta
+        
          
 
 
@@ -32,6 +33,8 @@ class Gerente(Entidade):
         super().__init__(nome, senha, cad_Pessoa)
         self.__identificacao = identificacao
         
+    def verificarIdentificacao(self, identificacao):
+        return self.__identificacao == identificacao
     
     def gerarID(self):
         idLista = []
@@ -117,179 +120,247 @@ class Sistema:
     def __init__(self, banco_dados, gerente):
         self.banco_dados = banco_dados
         self.gerente = gerente
+        
+    def limparTela(self):
+        import os
+        os.system('cls' if os.name == 'nt' else 'clear')
+
+    def pauseTela(self):
+        print("Pressione Enter para continuar...\n")
+        input()
+        
+    def interface_Principal(self):
         while True:
+            #self.limparTela()
             
             print("====================Banco ATM====================\n")
-            print("Digite a opção que deseja acessar:\n")
-            print("[1] Gerente\n")
-            print("[2] Conta\n")
-            print("[0] Sair\n")
+            print("Bem-Vindo ao Banco ATM!\n")
+            print("[1] Sair\n")
+            print("[2] Login\n")
+            opcao = input("Digite uma opção: ")
             print("=================================================\n")
-        
-            opcao = input("Digite o número da opção desejada: ")
-        
+            
             if opcao == "1":
-                self.interface_Gerente()
-            elif opcao == "2":
-                self.interface_Cliente()
-            elif opcao == "0":
                 print("Saindo do sistema...")
-                break  # Sai do loop e encerra o programa
+                sys.exit()
+            elif opcao == "2":
+                print("====================Banco ATM====================\n")
+                print("Login\n")
+                idConta = input("Digite o ID do usuário: ")
+                senha = input("Digite a Senha: ")
+                print("=================================================\n")
+                
+                identificacao = idConta
+                
+                if self.banco_dados.verificarSenhaClienteDB(idConta, senha):
+                    # Login do cliente bem-sucedido
+                    self.interface_Cliente(idConta, senha)
+                    break
+                    
+                elif self.verificarIdentificacaoGerente(identificacao):
+                    # Verificação da identificação do gerente
+                    self.interface_Gerente()
+                    break
+                    
+                else:
+                    # Login falhou
+                    print("Falha no login. Verifique o ID e a senha.\n")
+                    input("Pressione Enter para continuar...")
+                    
             else:
-                print("Digite um valor válido.\n")
+                print("Digite uma opção válida!")
+
+
+
+                
+
+    def verificarIdentificacaoGerente(self, identificacao):
+        return self.gerente.verificarIdentificacao(identificacao)
 
     def interface_Gerente(self):
-        senha = input("Digite a senha do Gerente: ")
-        if senha == self.gerente._Entidade__senha:
-            print("\n" * 10)
-            print("====================Banco ATM====================\n")
-            print("Selecione uma opção:\n")
-            print("[1] Criar Conta\n")
-            print("[2] Remover Conta\n")
-            print("[3] Atualizar Conta\n")
-            print("[4] Visualizar Conta\n")
-            print("=================================================\n")
+
+        while True:
+                self.limparTela()
+                print("====================Banco ATM====================\n")
+                print("Selecione uma opção:\n")
+                print("[1] Criar Conta\n")
+                print("[2] Remover Conta\n")
+                print("[3] Atualizar Conta\n")
+                print("[4] Visualizar Conta\n")
+                print("[5] Sair\n")
+                print("=================================================\n")
     
-            opcao = input("Digite o número da opção desejada: ")
-            
-            if opcao == "1":
-                self.criar_conta()
-                
-            elif opcao == "2":
-                print("\n" * 10)
-                idConta = input("Digite o ID da conta a ser removida: ")
-                if self.gerente.removerConta(idConta):
-                    print("Conta removida com sucesso!")
-                else:
-                    print("Não foi possível remover a conta.")
-                    
-                    
-            elif opcao == "3":
-                print("\n" * 10)
-                idConta = input("Digite o ID da conta a ser atualizada: ")
-                if self.banco_dados.verificarIdConta(idConta):
-                    print("Selecione uma opção:\n")
-                    print("[1] Atualizar nome\n")
-                    print("[2] Atualizar endereço\n")
-                    print("[3] Atualizar telefone\n")
-                    
-                    sub_opcao = input("Digite o número da opção desejada: ")
-        
-                    if sub_opcao == "1":
-                        novo_nome = input("Digite o novo nome: ")
-                        if self.gerente.atualizarContaNome(idConta, novo_nome):
-                            print("Nome atualizado com Sucesso.")
-                        else:
-                            print("Não foi possivel atualizar o nome da conta.")
-                            
-                    elif sub_opcao == "2":
-                        novo_endereco = input("Digite o novo endereço: ")
-                        if self.gerente.atualizarContaEndereco(idConta, novo_endereco):
-                            print("Endereço da conta atualizado com sucesso!")
-                        else:
-                            print("Não foi possível atualizar o endereço da conta.")
-                            
-                            
-                    elif sub_opcao == "3":
-                        novo_telefone = input("Digite o novo telefone: ")
-                        if self.gerente.atualizarContaTelefone(idConta, novo_telefone):
-                            print("Telefone da conta atualizado com sucesso!") 
-                        else:
-                            print("Não foi possível atualizar o telefone da conta.")
-                            
+                opcao = input("Digite o número da opção desejada: ")
+    
+                if opcao == "1":
+                    self.criar_conta()
+                    self.limparTela()
+    
+                elif opcao == "2":
+                    idConta = input("Digite o ID da conta a ser removida: ")
+                    if self.gerente.removerConta(idConta):
+                        print("Conta removida com sucesso!")
                     else:
-                        print("Opção inválida.")
-                
+                        print("Não foi possível remover a conta.")
+                    self.limparTela()
+    
+                elif opcao == "3":
+                    idConta = input("Digite o ID da conta a ser atualizada: ")
+                    if self.banco_dados.verificarIdConta(idConta):
+                        print("Selecione uma opção:\n")
+                        print("[1] Atualizar nome\n")
+                        print("[2] Atualizar endereço\n")
+                        print("[3] Atualizar telefone\n")
+    
+                        sub_opcao = input("Digite o número da opção desejada: ")
+    
+                        if sub_opcao == "1":
+                            novo_nome = input("Digite o novo nome: ")
+                            if self.gerente.atualizarContaNome(idConta, novo_nome):
+                                print("Nome atualizado com Sucesso.")
+                            else:
+                                print("Não foi possivel atualizar o nome da conta.")
+    
+                        elif sub_opcao == "2":
+                            novo_endereco = input("Digite o novo endereço: ")
+                            if self.gerente.atualizarContaEndereco(idConta, novo_endereco):
+                                print("Endereço da conta atualizado com sucesso!")
+                            else:
+                                print("Não foi possível atualizar o endereço da conta.")
+    
+                        elif sub_opcao == "3":
+                            novo_telefone = input("Digite o novo telefone: ")
+                            if self.gerente.atualizarContaTelefone(idConta, novo_telefone):
+                                print("Telefone da conta atualizado com sucesso!")
+                            else:
+                                print("Não foi possível atualizar o telefone da conta.")
+    
+                        else:
+                            print("Opção inválida.")
+    
+                    else:
+                        print("Conta Inválida.")
+                    self.limparTela()
+    
+                elif opcao == "4":
+                    idConta = input("Digite o ID da conta a ser visualizada: ")
+                    self.gerente.visualizarConta(idConta)
+    
+                elif opcao == "5":
+                    print("Voltando a Tela Inicial")
+                    self.interface_Principal()  # Sai do loop e encerra o programa
+    
                 else:
-                    print("Conta Inválida.")
-                    
-            elif opcao == "4":
-                print("\n" * 10)
-                idConta = input("Digite o ID da conta a ser visualizada: ")
-                self.gerente.visualizarConta(idConta)
-                
-            else:
-                print("Digite um valor válido.\n")
-        
+                    print("Digite um valor válido.\n")
+                #self.pauseTela()
+    
         else:
             print("Senha inválida.\n")
     
+        self.limparTela()    
+    
             
-        
-
+    
     def criar_conta(self):
-        print("\n" * 15)
+        self.limparTela()
+    
         print("====================Banco ATM====================\n")
         print("Digite os dados do cliente:\n")
-        
+    
         nome = input("Nome: ")
         cad_Pessoa = input("CPF/CNPJ: ")
         endereco = input("Endereço: ")
         telefone = input("Telefone: ")
         saldo = float(input("Saldo Inicial: "))
-        senha = input("Senha: ")
-
+        senha = input("Senha com 6 dígitos: ")
+        while len(senha) != 6:
+            print("A senha precisa ter exatamente 6 dígitos.\n")
+            senha = input("Senha com 6 dígitos: ")
+    
         conta = self.gerente.criarConta(nome, senha, cad_Pessoa, endereco, telefone, saldo)
         if conta:
             print("Conta criada com sucesso!")
             print("ID da conta:", conta._idConta)
-            
+    
         else:
             print("Não foi possível criar a conta.")
+    
+        input("Pressione Enter para continuar...")
+    
+        self.limparTela()
 
-    def interface_Cliente(self):
-        print("\n" * 10)
-        idConta = input("Digite o ID da conta: ")
-        senha = input("Digite a senha: ")
-        
+
+    
+    def interface_Cliente(self, idConta, senha):
+    
         if self.banco_dados.verificarSenhaClienteDB(idConta, senha):
             info = self.banco_dados.getConta(idConta)
             conta = Conta(info[0], info[1], info[2], info[3], info[4], info[5], info[6])
-            
-            print("\n" * 10)
-            print("====================Banco ATM====================\n")
-            print("Selecione uma opção:\n")
-            print("[1] Saque\n")
-            print("[2] Depósito\n")
-            print("[3] Pagamento Agendado\n")
-            print("[4] Extrato\n")
-            print("=================================================\n")
-
-            opcao = input("Digite o número da opção desejada: ")
-            
-            if opcao == "1":
-                print("\n" * 10)
-                valor = float(input("Digite o valor do saque: "))
-                if conta.saque(valor, idConta):
-                    print("Saque realizado com sucesso!")
+            while True:
+                self.limparTela()
+    
+                print("====================Banco ATM====================\n")
+                print("Selecione uma opção:\n")
+                print("[1] Saque\n")
+                print("[2] Depósito\n")
+                print("[3] Pagamento Agendado\n")
+                print("[4] Solicitar Crédito\n")
+                print("[5] Extrato\n")
+                print("[6] Sair\n")
+                print("=================================================\n")
+    
+                opcao = input("Digite o número da opção desejada: ")
+    
+                if opcao == "1":
+                    valor = float(input("Digite o valor do saque: "))
+                    if conta.saque(valor, idConta):
+                        print("Saque realizado com sucesso!")
+                    else:
+                        print("Não foi possível realizar o saque.")
+    
+                elif opcao == "2":
+                    valor = float(input("Digite o valor do depósito: "))
+                    if conta.deposito(valor, idConta):
+                        print("Depósito realizado com sucesso!")
+                    else:
+                        print("Não foi possível realizar o depósito.")
+    
+                elif opcao == "3":
+                    valor = float(input("Digite o valor do pagamento: "))
+                    data = input("Digite a data do pagamento (dd/mm/aaaa): ")
+                    if conta.pagamentoAgendado(valor, data, idConta):
+                        print("Pagamento agendado com sucesso!")
+                    else:
+                        print("Não foi possível agendar o pagamento.")
+    
+                elif opcao == "4":
+                    valor_credito = float(input("Digite o valor do crédito: "))
+                    data_credito = input("Digite a data do crédito (dd/mm/aaaa): ")
+                    if conta.solicitarCredito(valor_credito, data_credito, idConta):
+                        print("Crédito solicitado com sucesso!")
+                    else:
+                        print("Não foi possível solicitar o crédito.")
+    
+                elif opcao == "5":
+                    conta.extrato(idConta)
+    
+                elif opcao == "6":
+                    print("Saindo do sistema...")
+                    self.interface_Principal()
+                    break  # Sai do loop e encerra o programa
+    
                 else:
-                    print("Não foi possível realizar o saque.")
-                    
-            elif opcao == "2":
-                print("\n" * 10)
-                valor = float(input("Digite o valor do depósito: "))
-                if conta.deposito(valor, idConta):
-                    print("Depósito realizado com sucesso!")
-                else:
-                    print("Não foi possível realizar o depósito.")
-                    
-            elif opcao == "3":
-                print("\n" * 10)
-                valor = float(input("Digite o valor do pagamento: "))
-                data = input("Digite a data do pagamento (dd/mm/aaaa): ")
-                if conta.pagamentoAgendado(valor, data, idConta):
-                    print("Pagamento agendado com sucesso!")
-                else:
-                    print("Não foi possível agendar o pagamento.")
-                    
-            elif opcao == "4":
-                print("\n" * 10)
-                conta.extrato(idConta)
-                
-            else:
-                print("Digite um valor válido.\n")
+                    print("Digite um valor válido.\n")
+    
+                self.pauseTela()
+    
         else:
             print("Credenciais inválidas.")
+            
+        #self.pauseTela()   
+        self.limparTela()
+
+
 
 
 

@@ -324,14 +324,18 @@ class Banco_de_Dados:
                 if len(user["_Entidade__cad_Pessoa"]) == 11:  # CPF
                     if valor <= (user["_saldo"] * 0.25):
                         self.depositoAgendadoDB(valor, data, idConta)
+                        return True
+                    
                     else:
                         return False
+                    
                 else:  # CNPJ
                     if valor <= (user["_saldo"] * 0.5):
                         self.depositoAgendadoDB(valor, data, idConta)
+                        return True
+                        
                     else:
                         return False
-        return True
 
                  
     def verificarSenhaClienteDB(self, idConta, senha):

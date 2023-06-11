@@ -2,8 +2,10 @@ from library.data_base import Banco_de_Dados
 from library.system_atm import Sistema, Gerente
 
 def workspace():
+    
     banco_dados = Banco_de_Dados()
-    gerente = Gerente("Gustavo", "123456", "789456", "07629002106")
+    gerente = Gerente("Mestre", "123456", "000001", "15935746200")
+    
     sistema = Sistema(banco_dados, gerente)
     sistema.interface_Principal()
 

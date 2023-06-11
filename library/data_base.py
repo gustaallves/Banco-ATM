@@ -78,6 +78,8 @@ class Banco_de_Dados:
             arqExtrato.write("==="*15 + "\n")
             arqExtrato.write(f"{conta.getNome()} - {conta._idConta}\n")
             arqExtrato.write("==="*15 + "\n")
+            arqExtrato.write(f"Saldo: R$ {conta._saldo:.2f}\n")
+            arqExtrato.write("==="*15 + "\n")
             
         except FileNotFoundError:
             return False

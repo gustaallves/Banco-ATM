@@ -291,7 +291,6 @@ class Banco_de_Dados:
         encontrado = False
     
         if not self.__featuresLists:
-            print("Não há clientes cadastrados.")
             return False
     
         else:
@@ -341,7 +340,6 @@ class Banco_de_Dados:
         encontrado = False
     
         if not self.__featuresLists:
-            print("Não há clientes cadastrados.")
             return False
     
         else:
@@ -386,9 +384,15 @@ class Banco_de_Dados:
     def getSaldoDB(self, idConta):
         saldo = 0.0
         
+        with open(self.__usersJson, "r") as usersFile:
+            self.__usersList = json.load(usersFile)
+
         for user in self.__usersList:
             if user["_idConta"] == idConta:
                 saldo = user["_saldo"]
+                break
+    
+        self.atualizarJson(self.__usersJson, self.__usersList)
                 
         return saldo
         

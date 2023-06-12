@@ -288,7 +288,7 @@ class Sistema:
                             self.pauseTela()
     
                     else:
-                        self.limpar_tela()
+                        self.limparTela()
                         print("Conta Inválida.")
                         self.pauseTela()
                         
@@ -368,6 +368,7 @@ class Sistema:
     
                 if opcao == "1":
                     self.limparTela()
+                    saldo = 0.0
                     saldo = self.banco_dados.getSaldoDB(idConta)
                     
                     print(f"Seu saldo atual é: R$ {saldo}")
@@ -385,6 +386,7 @@ class Sistema:
     
                 elif opcao == "2":
                     self.limparTela()
+                    saldo = 0.0
                     saldo = self.banco_dados.getSaldoDB(idConta)
                     
                     print(f"Seu saldo atual é: R$ {saldo}")
@@ -402,6 +404,7 @@ class Sistema:
     
                 elif opcao == "3":
                     self.limparTela()
+                    saldo = 0.0
                     saldo = self.banco_dados.getSaldoDB(idConta)
                     
                     print(f"Seu saldo atual é: R$ {saldo}")
@@ -425,6 +428,7 @@ class Sistema:
                     print("Pessoa Física: 25% do seu saldo atual.")
                     print("Pessoa Juridica: 50% do seu saldo atual.\n")
                     
+                    saldo = 0.0
                     saldo = self.banco_dados.getSaldoDB(idConta)
                     
                     print(f"Seu saldo atual é: R$ {saldo}")

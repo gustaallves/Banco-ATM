@@ -1,7 +1,7 @@
 from library.data_base import Banco_de_Dados
-from random import choice
-import string, sys
 import platform
+import sys
+import re
 
 class Entidade:
     
@@ -40,20 +40,10 @@ class Gerente(Entidade):
         
         else:
             return False
-    
-    def gerarID(self):
-        idLista = []
-        numbers = string.digits
-        randomNumber = "".join(choice(numbers) for _ in range(4))
-        
-        if randomNumber in idLista:
-            return self.gerarID()
-        else:
-            return randomNumber 
         
 
     def criarConta(self, nome, senha, cad_Pessoa, endereco, telefone, saldo):
-        idConta = self.gerarID()
+        idConta = self.__bancoDados.gerarID()
         novaConta = Conta(nome, senha, cad_Pessoa, endereco, telefone, idConta, saldo)
         
         if self.__bancoDados.criarContaDB(novaConta):
@@ -123,6 +113,14 @@ class Conta(Cliente):
 
 class Sistema:
     
+    padraoNome = r'^[a-zA-ZÀ-ÿ ]+$'
+    padraoTelefone = r'^\(\d{3}\) \d{5}-\d{4}$'
+    padraoSenha = r'^\d{6}$'
+    padraoCad_Pessoa = r'^\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}$|^\d{3}\.\d{3}\.\d{3}-\d{2}$'
+    padraoData = r'^(0[1-9]|1[0-9]|2[0-9]|3[01])/(0[1-9]|1[0-2])/(\d{4})$'
+    padraoIdConta = r'^\d{4}$'
+    
+    
     def __init__(self, banco_dados, gerente):
         self.banco_dados = banco_dados
         self.gerente = gerente
@@ -155,8 +153,15 @@ class Sistema:
                 self.limparTela()
                 print("====================Banco ATM====================\n")
                 print("Login\n")
-                idConta = input("Digite o ID do usuário: ")
+                
+                idConta = input("Digite o ID do usuário de 4 digitos: ")
+                while (not re.match(self.padraoIdConta, idConta)):
+                    idConta = input("\n Por Favor! Digite um ID de conta válido: ")
+                
                 senha = input("Digite a Senha: ")
+                while (not re.match(self.padraoSenha, senha)):
+                    senha = input("\nA senha precisa ter exatamente 6 dígitos numéricos: ")
+                    
                 print("=================================================\n")
                 
                 identificacao = idConta
@@ -217,6 +222,8 @@ class Sistema:
                 elif opcao == "2":
                     self.limparTela()
                     idConta = input("Digite o ID da conta a ser removida: ")
+                    while (not re.match(self.padraoIdConta, idConta)):
+                        idConta = input("\n Por Favor! Digite um ID de conta válido: ")
                     
                     if self.gerente.removerConta(idConta):
                         print("Conta removida com sucesso!")
@@ -231,6 +238,8 @@ class Sistema:
                 elif opcao == "3":
                     self.limparTela()
                     idConta = input("Digite o ID da conta a ser atualizada: ")
+                    while (not re.match(self.padraoIdConta, idConta)):
+                        idConta = input("\n Por Favor! Digite um ID de conta válido: ")
                     
                     if self.banco_dados.verificarIdConta(idConta):
                         print("Selecione uma opção:\n")
@@ -243,6 +252,8 @@ class Sistema:
                         if sub_opcao == "1":
                             self.limparTela()
                             novo_nome = input("Digite o novo nome: ")
+                            while (not novo_nome.isalpha()):
+                                novo_nome = input("\nPor Favor! Digite um nome válido: ")
                             
                             if self.gerente.atualizarContaNome(idConta, novo_nome):
                                 print("Nome atualizado com Sucesso.")
@@ -272,6 +283,9 @@ class Sistema:
                             self.limparTela()
                             novo_telefone = input("Digite o novo telefone: ")
                             
+                            while (not re.match(self.padraoTelefone, novo_telefone)):
+                                novo_telefone = input("\nDigite o número no formato correto: ")
+                            
                             if self.gerente.atualizarContaTelefone(idConta, novo_telefone):
                                 print("Telefone da conta atualizado com sucesso!")
                                 self.pauseTela()
@@ -297,6 +311,8 @@ class Sistema:
                 elif opcao == "4":
                     self.limparTela()
                     idConta = input("Digite o ID da conta a ser visualizada: ")
+                    while (not re.match(self.padraoIdConta, idConta)):
+                        idConta = input("\n Por Favor! Digite um ID de conta válido: ")
                     
                     self.gerente.visualizarConta(idConta)
                     self.pauseTela()
@@ -315,22 +331,59 @@ class Sistema:
             
     
     def criar_conta(self):
+        verificador = False
         self.limparTela()
     
         print("====================Banco ATM====================\n")
         print("Digite os dados do cliente:\n")
-    
-        nome = input("Nome: ")
-        cad_Pessoa = input("CPF/CNPJ: ")
-        endereco = input("Endereço: ")
-        telefone = input("Telefone: ")
-        saldo = float(input("Saldo Inicial: "))
-        senha = input("Senha com 6 dígitos: ")
         
-        while len(senha) != 6:
-            print("A senha precisa ter exatamente 6 dígitos.\n")
-            senha = input("Senha com 6 dígitos: ")
-    
+        nome = input("Nome: ")
+        while (not re.match(self.padraoNome, nome)):
+            nome = input("\nPor Favor! Digite um nome válido: ")
+        
+        print("---"*15)
+        
+        print("Digite apenas os números do CPF ou CNPJ \n(XX.XXX.XXX/0001-XX ou XXX.XXX.XXX-XX)")
+        cad_Pessoa = input("CPF/CNPJ: ")
+        
+        while (not re.match(self.padraoCad_Pessoa, cad_Pessoa)):
+           cad_Pessoa = input("\nDigite um CPF/CNPJ válido: ")
+        
+        print("---"*15)
+        
+        endereco = input("Endereço: ")
+        
+        print("---"*15)
+        
+        print("Digite apenas no formato: (DDD) 99999-9999")
+        telefone = input("Telefone: ")
+        
+        while (not re.match(self.padraoTelefone, telefone)):
+            telefone = input("\nDigite o número no formato correto (DDD) 99999-9999: ")
+        
+        print("---"*15)
+        
+        while verificador == False:
+            print("Digite apenas números com duas casas decimais. EX.: 99.99")
+            try:
+                saldo = float(input("Saldo Inicial: "))
+                if isinstance(saldo, float) and round(saldo, 2) == saldo:
+                    verificador = True
+                    
+            except ValueError:
+                 print("\nPor Favor! Digite o valor do saldo da maneira correta.")       
+        
+        print("---"*15)
+        
+        senha = input("Senha com 6 dígitos numéricos: ")
+        
+        while (not re.match(self.padraoSenha, senha)):
+            print("\nA senha precisa ter exatamente 6 dígitos numéricos.")
+            senha = input("Senha com 6 dígitos numéricos: ")
+        
+        print("---"*15)
+                
+        
         conta = self.gerente.criarConta(nome, senha, cad_Pessoa, endereco, telefone, saldo)
         if conta and saldo >= 0:
             print("Conta criada com sucesso!")
@@ -368,11 +421,22 @@ class Sistema:
     
                 if opcao == "1":
                     self.limparTela()
+                    verif1 = False
                     saldo = 0.0
                     saldo = self.banco_dados.getSaldoDB(idConta)
                     
-                    print(f"Seu saldo atual é: R$ {saldo}")
-                    valor = float(input("Digite o valor do saque: "))
+                    print(f"Seu saldo atual é: R$ {saldo:.2f}")
+                    print("---"*15)
+                    
+                    while verif1 == False:
+                        print("Digite apenas números com duas casas decimais. EX.: 99.99")
+                        try:
+                            valor = float(input("Digite o valor do saque: "))
+                            if isinstance(valor, float) and round(valor, 2) == valor:
+                                verif1 = True
+                                
+                        except ValueError:
+                             print("\nPor Favor digite o valor do saque da maneira correta.")  
                     
                     if conta.saque(valor, idConta):
                         print("Saque realizado com sucesso!")
@@ -385,12 +449,23 @@ class Sistema:
                     self.limparTela()
     
                 elif opcao == "2":
+                    verif2 = False
                     self.limparTela()
                     saldo = 0.0
                     saldo = self.banco_dados.getSaldoDB(idConta)
                     
-                    print(f"Seu saldo atual é: R$ {saldo}")
-                    valor = float(input("Digite o valor do depósito: "))
+                    print(f"Seu saldo atual é: R$ {saldo:.2f}")
+                    print("---"*15)
+
+                    while verif2 == False:
+                        print("Digite apenas números com duas casas decimais. EX.: 99.99")
+                        try:
+                            valor = float(input("Digite o valor do depósito: "))
+                            if isinstance(valor, float) and round(valor, 2) == valor:
+                                verif2 = True
+                                
+                        except ValueError:
+                             print("\nPor Favor digite o valor do deposito da maneira correta.")
                     
                     if conta.deposito(valor, idConta):
                         print("Depósito realizado com sucesso!")
@@ -403,13 +478,29 @@ class Sistema:
                     self.limparTela()
     
                 elif opcao == "3":
+                    verif3 = False
                     self.limparTela()
                     saldo = 0.0
                     saldo = self.banco_dados.getSaldoDB(idConta)
                     
                     print(f"Seu saldo atual é: R$ {saldo}")
-                    valor = float(input("Digite o valor do pagamento: "))
+                    print("---"*15)
+                    
+                    while verif3 == False:
+                        print("Digite apenas números com duas casas decimais. EX.: 99.99")
+                        try:
+                            valor = float(input("Digite o valor do pagamento: "))
+                            if isinstance(valor, float) and round(valor, 2) == valor:
+                                verif3 = True
+                                
+                        except ValueError:
+                             print("\nPor Favor digite o valor do pagamento da maneira correta.")
+                    
                     data = input("Digite a data do pagamento (dd/mm/aaaa): ")
+                    
+                    while (not re.match(self.padraoData, data)):
+                        data = input("\nPor favor digite a data da maneira correta: ")
+                             
                     
                     if conta.pagamentoAgendado(valor, data, idConta):
                         print("Pagamento agendado com sucesso!")
@@ -422,7 +513,9 @@ class Sistema:
                     self.limparTela()
     
                 elif opcao == "4":
+                    verif4 = False
                     self.limparTela()
+                    
                     print("ATENÇÃO")
                     print("Total disponivel para solicitar crédito: ")
                     print("Pessoa Física: 25% do seu saldo atual.")
@@ -431,9 +524,24 @@ class Sistema:
                     saldo = 0.0
                     saldo = self.banco_dados.getSaldoDB(idConta)
                     
-                    print(f"Seu saldo atual é: R$ {saldo}")
-                    valor_credito = float(input("Digite o valor do crédito: "))
-                    data_credito = input("Digite a data do crédito (dd/mm/aaaa): ")
+                    print(f"Seu saldo atual é: R$ {saldo:.2f}")
+                    print("---"*15)
+                    
+                    
+                    while verif4 == False:
+                        print("Digite apenas números com duas casas decimais. EX.: 99.99")
+                        try:
+                            valor_credito = float(input("Digite o valor de solicitação de crédito: "))
+                            if isinstance(valor_credito, float) and round(valor_credito, 2) == valor_credito:
+                                verif4 = True
+                                
+                        except ValueError:
+                             print("\nPor Favor! Digite o valor da maneira correta.")
+                    
+                    data_credito = input("Digite a data do recebimento do crédito (dd/mm/aaaa): ")
+                    
+                    while (not re.match(self.padraoData, data_credito)):
+                        data_credito = input("\nPor favor digite a data  da maneira correta: ")
                     
                     if conta.solicitarCredito(valor_credito, data_credito, idConta):
                         print("Crédito solicitado com sucesso!")

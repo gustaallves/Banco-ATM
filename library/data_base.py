@@ -1,8 +1,11 @@
 import os
 import json
+import string
 import platform
 import datetime as dt
 from pathlib import Path
+from random import choice
+
 
 class Banco_de_Dados:
     
@@ -13,15 +16,18 @@ class Banco_de_Dados:
         caminho_featuresJson = str(diretorio_atual + "\\data base\\features.json")
         caminho_extratos = str(diretorio_atual + "\\data base\\extratos")
         caminho_Json = str(diretorio_atual + "\\data base\\users.json")
+        caminho_idContas = str(diretorio_atual + "\\data base\\idContas.json")
     
     else:
         caminho_featuresJson = str(diretorio_atual + "//data base//features.json")
         caminho_extratos = str(diretorio_atual + "//data base//extratos")
         caminho_Json = str(diretorio_atual + "//data base//users.json")
+        caminho_idContas = str(diretorio_atual + "//data base//idContas.json")
     
     __usersJson = caminho_Json
     __bankHistory = caminho_extratos
     __bankFeatures = caminho_featuresJson
+    __idContasJson = caminho_idContas
     
     
     def __init__(self):
@@ -38,10 +44,19 @@ class Banco_de_Dados:
         
         except Exception:
             return None
+        
+        try:
+            with open(self.__idContasJson) as ids:
+                self.__idContasList = json.load(ids)
+                
+        except Exception:
+            return None
+        
    
     def abrirDiretorioUsuarios(self, diretorio):
         with open(diretorio) as fp:
             self.__usersList = json.load(fp)
+    
     
     def atualizarJson(self, diretorio, arquivo):
         with open(diretorio, "w") as fp:
@@ -50,8 +65,7 @@ class Banco_de_Dados:
             
         
     def atualizarAtributoJson(self, idConta, campoJson, atributoNovo):
-        with open(self.__usersJson, "r") as usersFile:
-            self.__usersList = json.load(usersFile)
+        self.atualizarDB()
 
         encontrado = False  # Variável de controle
     
@@ -71,6 +85,7 @@ class Banco_de_Dados:
         
     
     def criarContaDB(self, conta):
+        self.atualizarDB()
         nomeArq = conta._idConta + ".txt"
         
         try:
@@ -94,17 +109,28 @@ class Banco_de_Dados:
     
     
     def excluirContaDB(self, idConta):
+        self.atualizarDB()
         encontrado = False
+        
         for i in reversed(range(len(self.__usersList))):
             if (not self.__usersList):
                 print("Não possui clientes disponíveis.")
             
-            elif self.__usersList[i]["_idConta"] == idConta:
+            elif self.__usersList[i]["_idConta"] == idConta and self.__usersList[i]["_saldo"] == 0:
                     nomeArq = idConta + ".txt"
                     arqExtrato = Path(self.__bankHistory, nomeArq)
                     os.remove(arqExtrato)
+
+                    self.excluirFeatures(idConta, "valorDeposito")
+                    self.excluirFeatures(idConta, "valorPagamento")
+                    
                     self.__usersList.pop(i)
+                    self.removerID(idConta)
                     encontrado = True
+                    
+            else:
+                print("Usuario não possui saldo zerado, impossivel remover.")
+                return False
             
         if not encontrado:
             print("Usuário não encontrado.")
@@ -115,6 +141,8 @@ class Banco_de_Dados:
             
     
     def visualizarClientesDB(self):
+        self.atualizarDB()
+        
         if (not self.__usersList):
             print("Não possui clientes disponíveis para visualizar.")
             return False
@@ -141,8 +169,7 @@ class Banco_de_Dados:
     
     
     def atualizarContaSaldoDB(self, idConta, valor):
-        with open(self.__usersJson, "r") as usersFile:
-            self.__usersList = json.load(usersFile)
+        self.atualizarDB()
 
         for user in self.__usersList:
             if user["_idConta"] == idConta:
@@ -157,7 +184,9 @@ class Banco_de_Dados:
                        
     
     def visualizarContaDB(self, idConta):
-       for i in range(len(self.__usersList)):
+        self.atualizarDB()
+        
+        for i in range(len(self.__usersList)):
            if self.__usersList[i]["_idConta"] == idConta:
                print("==="*13)
                print("Nome:", self.__usersList[i]["_Entidade__nome"])
@@ -169,8 +198,8 @@ class Banco_de_Dados:
                print("==="*13)
                return True
            
-       print("Conta não encontrada")
-       return False
+        print("Conta não encontrada")
+        return False
    
     
     def dataAtualDB(self):
@@ -184,6 +213,7 @@ class Banco_de_Dados:
    
     
     def saqueDB(self, valorSaque, idConta):
+        self.atualizarDB()
         dataAtualF = self.dataAtualDB()
         horaAtual = self.horaAtualDB()
         saldoAtual = 0.0
@@ -217,6 +247,7 @@ class Banco_de_Dados:
     
     
     def depositoDB(self, valorDeposito, idConta):
+        self.atualizarDB()
         dataAtualF = self.dataAtualDB()
         horaAtual = self.horaAtualDB()
         saldoAtual = 0.0
@@ -243,6 +274,11 @@ class Banco_de_Dados:
     
     
     def excluirFeatures(self, idConta, tipoFeature):
+        self.atualizarDB()
+        
+        with open(self.__bankFeatures, "r") as fp:
+            self.__featuresLists = json.load(fp)
+        
         encontrado = False
         for i in reversed(range(len(self.__featuresLists))):
             if (not self.__featuresLists):
@@ -338,6 +374,7 @@ class Banco_de_Dados:
     def verificarDepositoAgendadoDB(self, idConta):
         dataAtualF = self.dataAtualDB()
         encontrado = False
+
     
         if not self.__featuresLists:
             return False
@@ -354,6 +391,8 @@ class Banco_de_Dados:
         return encontrado
     
     def solicitarCreditoDB(self, valor, data, idConta):
+        self.atualizarDB()
+        
         for user in self.__usersList:
             if user["_idConta"] == idConta:
                 if len(user["_Entidade__cad_Pessoa"]) == 11:  # CPF
@@ -374,18 +413,22 @@ class Banco_de_Dados:
 
                  
     def verificarSenhaClienteDB(self, idConta, senha):
+        self.atualizarDB()
+            
         for user in self.__usersList:
             if user["_idConta"] == idConta:
                 if user["_Entidade__senha"] == senha:
                     return True
+        
+        self.atualizarJson(self.__usersJson, self.__usersList)        
+        
         return False
 
     
     def getSaldoDB(self, idConta):
         saldo = 0.0
         
-        with open(self.__usersJson, "r") as usersFile:
-            self.__usersList = json.load(usersFile)
+        self.atualizarDB()
 
         for user in self.__usersList:
             if user["_idConta"] == idConta:
@@ -399,6 +442,8 @@ class Banco_de_Dados:
                 
                 
     def getConta(self, idConta):
+        self.atualizarDB()
+        
         informacoes = []
         for user in self.__usersList:
             if user["_idConta"] == idConta:
@@ -414,6 +459,8 @@ class Banco_de_Dados:
     
     
     def verificarIdConta(self, idConta):
+        self.atualizarDB()
+            
         for user in self.__usersList:
             if user["_idConta"] == idConta:
                 return True
@@ -422,7 +469,53 @@ class Banco_de_Dados:
         else:
             return False
         
-    
         
+    def atualizarDB(self):
+        with open(self.__usersJson, "r") as usersFile:
+            self.__usersList = json.load(usersFile)
     
+    
+    def gerarID(self):
+        with open(self.__idContasJson, "r") as cl:
+            self.__idContasList = json.load(cl)
+            
+        numbers = string.digits
+        randomNumber = "".join(choice(numbers) for _ in range(4))
         
+        for user in self.__idContasList:
+            if user["idConta"] == randomNumber:
+                return self.gerarID()
+        
+        else:
+            idGerado = {"idConta": randomNumber}
+            self.__idContasList.append(idGerado)
+            self.__idContasList.sort(key=lambda x: x.get("idConta"))
+            
+            try:
+                with open(self.__idContasJson, "w") as fp:
+                    json.dump(self.__idContasList, fp, indent=4)
+                    return randomNumber
+                
+            except Exception:
+                return False
+            
+            
+    def removerID(self, idConta):
+        encontrado = False
+        with open(self.__idContasJson, "r") as cl:
+            self.__idContasList = json.load(cl)
+        
+        for i in reversed(range(len(self.__idContasList))):
+            if (not self.__idContasList):
+                print("Não possui clientes disponíveis.")
+            
+            elif self.__idContasList[i]["idConta"] == idConta:
+                self.__idContasList.pop(i)
+                encontrado = True
+                break
+            
+        if not encontrado:
+            return False
+        
+        self.atualizarJson(self.__idContasJson, self.__idContasList)
+        return encontrado

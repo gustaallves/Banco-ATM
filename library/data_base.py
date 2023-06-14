@@ -395,7 +395,7 @@ class Banco_de_Dados:
         
         for user in self.__usersList:
             if user["_idConta"] == idConta:
-                if len(user["_Entidade__cad_Pessoa"]) == 11:  # CPF
+                if len(user["_Entidade__cad_Pessoa"]) == 14:  # CPF
                     if valor <= (user["_saldo"] * 0.25):
                         self.depositoAgendadoDB(valor, data, idConta)
                         return True
